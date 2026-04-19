@@ -1,0 +1,67 @@
+# terraform.tfvars - Fargate-only configuration example
+# (EC2 capacity providers and ASGs are completely disabled)
+
+# ── General & Cluster ───────────────────────────────────────────────────────
+region       = "us-east-1"
+environment  = "dev"
+cluster_name = "dev-ecs-fargate"
+enabled      = true
+
+ecs_settings_enabled = "enabled" # Container Insights
+
+# ── Fargate enabled ────────────────────────────────────────────────────
+fargate_cluster_enabled = true
+
+# ── Networking ──────────────────────────────────────────────────────────────
+vpc_cidr_block = "10.0.0.0/16"
+vpc_name       = "dev-ecs-vpc"
+
+private_subnet_cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]
+public_subnet_cidr_blocks  = ["10.0.3.0/24", "10.0.4.0/24"]
+
+network_mode = "awsvpc"
+
+assign_public_ip = true
+
+# ── Logging & Tags ──────────────────────────────────────────────────────────
+log_retention_days = 30
+kms_key_arn        = ""
+
+tags = {
+  environment = "dev"
+  ManagedBy   = "Terraform"
+}
+
+# ── Service Deployment Defaults ─────────────────────────────────────────────
+scheduling_strategy     = "REPLICA"
+propagate_tags          = "SERVICE"
+enable_ecs_managed_tags = true
+
+# ── Services Configuration (Fargate only) ───────────────────────────────────
+container_definitions_files = [
+  {
+    file_path    = "./task-definition.json"
+    service_name = "node-demo"
+    cpu          = 512
+    memory       = 1024
+    lb = {
+      enabled        = true
+      container_name = "node-demo"
+      container_port = 3000
+      path_pattern   = "/*"
+      health_check = {
+        path                = "/"
+        port                = 3000
+        timeout             = 10
+        healthy_threshold   = 5
+        unhealthy_threshold = 2
+      }
+    }
+  }
+]
+
+enable_task_autoscaling       = true
+task_autoscaling_min_capacity = 1
+task_autoscaling_max_capacity = 5
+
+attach_base_execution_policy = true

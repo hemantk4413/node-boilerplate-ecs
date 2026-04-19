@@ -1,0 +1,42 @@
+{
+  "family": "node-demo",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::569144120749:role/dev-ecs-fargate-task-execution",
+  "taskRoleArn": "arn:aws:iam::569144120749:role/dev-ecs-fargate-task-role",
+  "containerDefinitions": [
+    {
+      "name": "node-demo",
+      "image": "569144120749.dkr.ecr.us-east-1.amazonaws.com/demo-app-staging:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "VERSION", "value": "2.0" }
+      ],
+      "secrets": [
+        { "name": "DB_HOST", "valueFrom": "arn:aws:secretsmanager:us-west-1:569144120749:secret:ECS-RDS-bZpgOC:DB_HOST::"},
+        { "name": "DB_USERNAME","valueFrom": "arn:aws:secretsmanager:us-west-1:569144120749:secret:ECS-RDS-bZpgOC:DB_USERNAME::"},
+        { "name": "DB_DATABASE","valueFrom": "arn:aws:secretsmanager:us-west-1:569144120749:secret:ECS-RDS-bZpgOC:DB_DATABASE::"},
+        { "name": "DB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:us-west-1:569144120749:secret:ECS-RDS-bZpgOC:DB_PASSWORD::"},
+        { "name": "DB_PORT","valueFrom": "arn:aws:secretsmanager:us-west-1:569144120749:secret:ECS-RDS-bZpgOC:DB_PORT::"},
+        { "name": "DB_REGION", "valueFrom": "arn:aws:secretsmanager:us-west-1:569144120749:secret:ECS-RDS-bZpgOC:DB_REGION::"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/dev-ecs-fargate/node-demo",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "node-demo"
+        }
+      }
+    }
+  ]
+}

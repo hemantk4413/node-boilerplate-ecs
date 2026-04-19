@@ -1,0 +1,35 @@
+name: Deploy Application to ECS
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  ecs:
+    uses: satyam0710/cicd/.github/workflows/ecs-deployment.yml@main
+    with:
+      # Source Code
+      checkout_ref: main
+      # AWS
+      aws_role_arn: arn:aws:iam::569144120749:role/github-actions-ecs-deploy-role
+      aws_region: us-east-1
+
+      # ECS / ECR
+      ecr_repository: demo-app-staging
+      ecs_cluster: dev-ecs-fargate
+      ecs_service: node-demo
+      container_name: node-demo
+
+      # Docker build
+      docker_context: node-express-mysql-boilerplate
+      dockerfile_path: node-express-mysql-boilerplate/Dockerfile
+
+      # ECS task definition
+      task_definition_path: ecs/task-definition.json
+
+      # Optional
+      enable_trivy_scan: true
+      enable_slack_alert: true
+
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
