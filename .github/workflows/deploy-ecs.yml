@@ -60,7 +60,7 @@ jobs:
 
       # ── 5. Trivy vulnerability scan ────────────────────────────────────────
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           image-ref: ${{ steps.build-image.outputs.image }}
           format: table
