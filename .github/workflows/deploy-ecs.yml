@@ -35,6 +35,10 @@ jobs:
           role-to-assume: arn:aws:iam::115019372174:role/github-actions-ecs-deploy-role
           aws-region: ${{ env.AWS_REGION }}
 
+      # ── 3. Reset Docker context ────────────────────────────────────────────
+      - name: Reset Docker context
+        run: docker context use default
+
       # ── 4. Login to Amazon ECR ─────────────────────────────────────────────
       - name: Login to Amazon ECR
         id: login-ecr
@@ -47,9 +51,6 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Reset Docker context to default to avoid stale context conflicts
-          docker context use default
-
           docker build \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
