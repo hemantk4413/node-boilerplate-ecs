@@ -4,8 +4,8 @@
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
   "memory": "1024",
-  "executionRoleArn": "arn:aws:iam::569144120749:role/dev-ecs-fargate-task-execution",
-  "taskRoleArn": "arn:aws:iam::569144120749:role/dev-ecs-fargate-task-role",
+  "executionRoleArn": "arn:aws:iam::115019372174:role/dev-ecs-fargate-task-execution",
+  "taskRoleArn": "arn:aws:iam::115019372174:role/dev-ecs-fargate-task-role",
   "containerDefinitions": [
     {
       "name": "node-demo",
