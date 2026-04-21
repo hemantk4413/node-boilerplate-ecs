@@ -1,353 +1,286 @@
-# Node Web Application boilerplate
+# Three-Tier Application Deployment on AWS ECS
 
-A boilerplate for **Node.js** web applications. This boilerplate gives the basic stucture of application start with while bundling enough useful features so as to remove all those redundant tasks that can derail a project before it even really gets started. This boilerplate users Express with sequelize as ORM and MySQL as database.
-
-### Prerequisites
-
-1. ```NodeJs```
-2. ```NPM```
-3. ```MySQL```
-
-### Quick start
-
-1. Clone the repository with `git clone https://github.com/mangya/node-express-mysql-boilerplate.git <your_project_folder_name>`
-2. Change directory to your project folder `cd <your_project_folder_name>`
-3. Install the dependencies with `npm install`
-4. Create database in MySQL.
-5. Update the your database name and credentials in the `.env` file.
-6. Run the application with `npm start` (MySQL service should be up and running).
-7. Access `http://localhost:3000` and you're ready to go!
-
-### Folder Structure
-```
-.
-├── app/
-│   ├── controllers/           # Controllers
-│   ├── middlewares/           # Middlewares
-│   ├── models/                # Express database models
-├── config/
-├── public/
-│   ├── css/                   # Stylesheets
-│   ├── js/
-│	├── fonts/
-│   ├── images/
-├── .env                       # API keys, passwords, and other sensitive information
-├── routes/                    # Route definitions
-├── views/                     # All view files
-├── index.js                   # Express application
-└── package.json               # NPM Dependencies and scripts
-```
-
-## Packages used
-* [nodemon](https://github.com/remy/nodemon) — tool that helps develop node.js based applications by automatically restarting the node application when file changes in the directory are detected.
-* [bcryptjs](https://github.com/dcodeIO/bcrypt.js) — encryption library to hash a password
-* [body-parser](https://github.com/expressjs/body-parser) — Node.js body parsing middleware. Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
-* [express-flash](https://github.com/RGBboy/express-flash) — middleware to store flash messages in the session.
-* [connect-session-sequelize](https://github.com/mweibel/connect-session-sequelize) — SQL session store using Sequelize.js
-* [csurf](https://github.com/expressjs/csurf) — Middleware for CSRF token creation and validation. Requires session middleware to be initialized first. We have used `express-session`
-* [dotenv](https://github.com/motdotla/dotenv) — module to load environment variables from a .env file
-* [express](https://github.com/visionmedia/express) — web application framework for node
-* [express-handlebars](https://github.com/express-handlebars/express-handlebars) — Template engine
-* [express-session](https://github.com/expressjs/session) — Module to create a session middleware. Required for `csurf`.
-* [validator](https://github.com/validatorjs/validator.js) — A library of string validators and sanitizers.
-* [mysql2](https://github.com/sidorares/node-mysql2) — MySQL client for Node.js. Required for Sequelize.
-* [sequelize](https://github.com/sequelize/sequelize) — Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server.
-
-## Dockerized Node.js Application
-This repository contains a Dockerfile to build and run a Node.js application in a Docker container. The Dockerfile is optimized for production use.
-
-## Getting Started
-
-To get started with running this Dockerized Node.js application, follow these steps:
-
-### Prerequisites
-
-- Docker installed on your system. You can download and install Docker from [here](https://www.docker.com/get-started).
-
-### Building the Docker Image
-
-1. Clone this repository to your local machine:
-
-    ```bash
-    git clone git@github.com:satyam0710/node-boilerplate-ecs.git
-    ```
-
-2. Navigate to the root directory of the cloned repository:
-
-    ```bash
-    cd node-express-mysql-boilerplate
-    ```
-
-3. Build the Docker image using the provided Dockerfile:
-
-    ```bash
-    docker build -t <image-name> .
-    ```
-
-### Running the Docker Container
-
-Once you have built the Docker image, you can run the container using the following command:
-
-```bash
-docker run -p 3000:3000 -d <image-name>
-```
-
-This command will start the container in detached mode and expose port 3000 of the container to port 3000 on your host machine.
-
-## Accessing the Application
-You can access the running application by navigating to http://localhost:3000 in your web browser.
-
-## After Application is live
-You can access the running application by navigating to https://app.clouddemo.top in your web browser.
-
-# Automated Deployment Workflow for Node Web App on AWS ECS
-This GitHub Actions workflow automates the deployment process for a Node Web App  to **AWS Elastic Container Service (ECS)**. Workflow description:
-
-* **Docker Image Building**: Efficiently builds Docker images encapsulating the Node Web app.
-
-* **Vulnerability Scanning**: Conducts thorough vulnerability scans on the Docker images to ensure robust security measures.
-
-* **ECS Deployment**: Seamlessly deploys the application onto AWS ECS by registering a new task definition revision and updating the ECS service, enabling controlled and reliable deployments.
-
-## Workflow Steps
-
-* **Checkout Code**: Checks out the source code from the repository.
-
-* **Setup AWS Credentials**: Configures AWS credentials to authenticate with Amazon ECR.
-
-* **Login to Amazon ECR**: Logs in to ECR to enable Docker image pushes.
-
-* **Build and Push Docker Image**: Builds Docker images for the Node.js application, tags them with `latest` and the commit ID, and pushes them to ECR.
-
-* **Run Trivy Vulnerability Scanner**: Scans the Docker image for vulnerabilities using Trivy and outputs the results.
-
-* **Render ECS Task Definition**: Updates the container image in the ECS task definition JSON.
-
-* **Deploy to ECS Service**: Registers a new task definition revision and updates the ECS service, waiting for service stability.
-
-* **Optionally sends Alerts to Alack**: Slack alerts can be turned on using input enable_slack_alert.
-
-## Improvements we can do
-
-* Enhance the workflow to support multiple environments such as staging, testing, and production.
-* Parameterize environment-specific configurations within ECS task definitions.
-* Use GitHub Actions environments and approvals for controlled production deployments.
-
-# Node Boilerplate Infrastructure
-
-## Usage
-
-* Example modules
-
-```
-module "vpc" {
-  source                     = "./modules/vpc"
-  name                       = "${var.name}-${var.environment}"
-  region                     = var.region
-  cidr_block                 = var.cidr_block
-  private_subnet_cidr_blocks = var.private_subnet_cidr_blocks
-  public_subnet_cidr_blocks  = var.public_subnet_cidr_blocks
-  azs                        = var.azs
-  environment                = var.environment
-  tags                       = var.tags
-  public_subnet_tags         = var.public_subnet_tags
-  private_subnet_tags        = var.private_subnet_tags
-}
-
-module "ecs" {
-  source              = "git@github.com:satyam0710/terraform-aws-modules.git//terraform/modules/ecs?ref=main"
-  name                = var.name
-  environment         = var.environment
-  ecs_cluster_name    = var.ecs_cluster_name
-  ecs_service_name    = var.ecs_service_name
-  launch_type         = var.launch_type
-  cpu                 = var.cpu
-  memory              = var.memory
-  desired_count       = var.desired_count
-  vpc_id              = module.vpc.id
-  subnet_ids          = module.vpc.private_subnet_ids
-  assign_public_ip    = false
-}
-```
-
-### Steps To Use
-
-* Customize the module by providing values for the required variables (for example in `terraform.tfvars`).
-
-* Clone this repository to your local machine.
-
-```
-git clone <repo_url>
-```
-
-* Change directory to terraform
-
-```
-cd ecs-terraform/
-```
-
-* Run terraform init to initialize the module.
-
-```
-terraform init
-```
-
-* Run terraform plan to see the execution plan.
-
-```
-terraform plan -var-file terraform.tfvars
-```
-
-* Run terraform apply to create the resources.
-
-```
-terraform apply -var-file terraform.tfvars
-```
-
-* To switch the workspace
-
-```
-terraform workspace select staging
-```
-
-## Terraform pre-commit hooks
-
-
-Execute this command to run `pre-commit` on all files in the repository (not only changed files):
-
-```
-cd ecs-terraform
-pre-commit run -a  #This will format the code and creates terraform docs
-```
-
-### [tfenv](https://github.com/tfutils/tfenv) - Terraform version manager
-
-[tfenv](https://github.com/tfutils/tfenv) is a Terraform version manager which would help us on setting up the right
-terraform client version and update it as we keep moving forward.
-
-Install via Homebrew:
-
-```shell
-brew install tfenv
-```
-
-```shell
-tfenv install 1.5.7
-tfenv use 1.5.7
-cd terraform
-terraform init
-```
-
-### [TF Lint](https://github.com/terraform-linters/tflint)
-
-```shell
-pip install pre-commit
-brew install tflint
-brew install terraform-docs
-brew install gawk
-brew install checkov
-brew install tfsec
-tflint --init
-```
-
-## Accessing MySQL / RDS from ECS (IAM Authentication)
-
-ECS tasks can securely access **Amazon RDS (MySQL)** using **IAM authentication**, without storing database passwords.
-
-### Prerequisites
-
-* RDS MySQL with **IAM DB authentication enabled**
-* ECS task **task role** with `rds-db:connect` permission
-* Database user created with IAM authentication plugin
+A production-ready **Node.js** web application deployed on **AWS ECS Fargate** with a fully automated CI/CD pipeline using GitHub Actions. The app features user authentication, session management, and connects to an **RDS MySQL** database. All secrets are managed via **AWS Secrets Manager**.
 
 ---
 
-### Create MySQL User for IAM Authentication
+## Architecture
 
-Connect to the database:
-
-```bash
-mysql -h <DB_ENDPOINT> -u <admin_user> -p
 ```
-
-Create an IAM-authenticated user:
-
-```sql
-CREATE USER 'demoapp' IDENTIFIED WITH AWSAuthenticationPlugin AS 'RDS';
-GRANT ALL PRIVILEGES ON *.* TO 'demoapp'@'%';
-FLUSH PRIVILEGES;
+Developer → GitHub (push to main)
+                ↓
+         GitHub Actions
+         ├── Build Docker image
+         ├── Push to Amazon ECR
+         ├── Trivy vulnerability scan
+         ├── Register new ECS task definition
+         └── Update ECS service (zero-downtime)
+                ↓
+         AWS ECS Fargate
+         ├── ALB (public) → Target Group → Container (port 3000)
+         ├── Secrets injected from Secrets Manager at startup
+         └── Logs → CloudWatch Log Groups
+                ↓
+         RDS MySQL
 ```
-
-> This user **does not have a password**. Authentication is done via IAM.
 
 ---
 
-### IAM Policy for RDS Access
+## Tech Stack
 
-Attach this policy to the **ECS task role**:
+| Layer | Technology |
+|---|---|
+| App | Node.js + Express |
+| ORM | Sequelize |
+| Templating | Handlebars (HBS) |
+| Auth | bcryptjs + express-session |
+| Security | csurf (CSRF protection) |
+| Container | Docker (multi-stage, Alpine) |
+| Registry | Amazon ECR |
+| Compute | AWS ECS Fargate |
+| Load Balancer | Application Load Balancer (ALB) |
+| Database | Amazon RDS MySQL |
+| Secrets | AWS Secrets Manager |
+| CI/CD | GitHub Actions |
+| Security Scan | Trivy |
+| AWS Auth | OIDC (no long-lived keys) |
+| Logs | Amazon CloudWatch |
 
+---
+
+## Repo Structure
+
+```
+node-boilerplate-ecs/
+├── .github/
+│   └── workflows/
+│       └── deploy-ecs.yml                  # CI/CD pipeline
+├── ecs/
+│   └── task-definition.json                # ECS Fargate task definition
+├── node-express-mysql-boilerplate/
+│   ├── app/
+│   │   ├── controllers/                    # AuthController, HomeController, ErrorController
+│   │   ├── middlewares/                    # isAuth.js (route guard)
+│   │   └── models/                         # User.js, Session.js
+│   ├── config/
+│   │   └── database.js                     # Sequelize MySQL connection
+│   ├── public/                             # Static assets (CSS, JS, fonts)
+│   ├── routes/
+│   │   └── web.js                          # All route definitions
+│   ├── views/                              # Handlebars templates
+│   ├── Dockerfile                          # Multi-stage Docker build
+│   ├── index.js                            # App entry point
+│   ├── package.json
+│   └── .env-example                        # Environment variable template for local dev
+└── README.md
+```
+
+---
+
+## App Features
+
+- User signup with input validation (name, email, password strength)
+- Login with bcrypt password comparison
+- Session-based authentication stored in MySQL
+- CSRF protection on all forms
+- Logout with session destruction
+- Forgot password with secure token generation
+- Password reset with token validation and 1-hour expiry
+- 404 error page
+- `/health` endpoint for ALB and Docker health checks
+- Auto-creates database on first startup if it doesn't exist
+
+---
+
+## Local Development
+
+### Prerequisites
+
+- Node.js
+- NPM
+- MySQL (local instance)
+
+### Quick Start
+
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/hemantk4413/node-boilerplate-ecs.git
+    cd node-boilerplate-ecs/node-express-mysql-boilerplate
+    ```
+
+2. Install dependencies:
+    ```bash
+    npm install
+    ```
+
+3. Copy the env example and fill in your local values:
+    ```bash
+    cp .env-example .env
+    ```
+
+4. Update `.env` with your local MySQL credentials:
+    ```
+    PORT=3000
+    SESSION_SECRET=your-random-secret
+    DB_HOST=localhost
+    DB_PORT=3306
+    DB_DATABASE=your_database
+    DB_USERNAME=root
+    DB_PASSWORD=your_password
+    DB_REGION=us-east-1
+    ```
+
+5. Start the app:
+    ```bash
+    npm start
+    ```
+
+6. Open `http://localhost:3000`
+
+---
+
+## Docker
+
+### Build the image
+
+```bash
+cd node-express-mysql-boilerplate
+docker build -t node-demo .
+```
+
+### Run the container
+
+```bash
+docker run -p 3000:3000 \
+  -e PORT=3000 \
+  -e SESSION_SECRET=secret \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PORT=3306 \
+  -e DB_DATABASE=mydb \
+  -e DB_USERNAME=root \
+  -e DB_PASSWORD=password \
+  -d node-demo
+```
+
+---
+
+## CI/CD Pipeline
+
+Every push to `main` triggers the pipeline automatically.
+
+### Pipeline Steps
+
+1. **Checkout code** — pulls latest code from main
+2. **Configure AWS credentials** — authenticates via GitHub OIDC (no stored AWS keys)
+3. **Login to ECR** — authenticates Docker to push images
+4. **Build & push image** — builds multi-stage image, tags with commit SHA + `latest`
+5. **Trivy scan** — scans for OS and library vulnerabilities
+6. **Render task definition** — injects new image URI into `ecs/task-definition.json`
+7. **Deploy to ECS** — registers new task definition revision, updates service, waits for stability
+
+### Required GitHub Secret
+
+| Secret | Description |
+|---|---|
+| *(none)* | AWS auth uses OIDC — no AWS keys needed |
+
+---
+
+## AWS Setup
+
+### Resources Required
+
+| Resource | Name |
+|---|---|
+| ECS Cluster | `dev-ecs-fargate` |
+| ECS Service | `node-demo` |
+| ECR Repository | `demo-app-staging` |
+| RDS MySQL | your RDS instance |
+| Secrets Manager | your secret with DB credentials |
+| CloudWatch Log Group | `/ecs/dev-ecs-fargate/node-demo` |
+| ALB + Target Group | health check path: `/health` |
+| IAM Role (CI/CD) | `github-actions-ecs-deploy-role` |
+| IAM Role (Task Execution) | `dev-ecs-fargate-task-execution` |
+| IAM Role (Task) | `dev-ecs-fargate-task-role` |
+| OIDC Provider | `token.actions.githubusercontent.com` |
+
+### Secrets Manager Keys
+
+The following keys must exist in your Secrets Manager secret:
+
+```
+DB_HOST
+DB_USERNAME
+DB_DATABASE
+DB_PASSWORD
+DB_PORT
+DB_REGION
+SESSION_SECRET
+```
+
+### IAM Role — GitHub Actions (OIDC)
+
+Trust policy condition:
 ```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "rds-db:connect",
-      "Resource": "arn:aws:rds-db:<REGION>:<ACCOUNT_ID>:dbuser:<DB_RESOURCE_ID>/demoapp"
-    }
-  ]
-}
+"repo:hemantk4413/node-boilerplate-ecs:*"
 ```
 
-**Replace:**
-
-* `<REGION>` – AWS region
-* `<ACCOUNT_ID>` – AWS account ID
-* `<DB_RESOURCE_ID>` – RDS DB resource ID (from RDS console)
-* `demoapp` – MySQL user created above
+Permissions needed:
+- `ecr:GetAuthorizationToken`, `ecr:BatchCheckLayerAvailability`, `ecr:PutImage`, `ecr:InitiateLayerUpload`, `ecr:UploadLayerPart`, `ecr:CompleteLayerUpload`
+- `ecs:RegisterTaskDefinition`, `ecs:UpdateService`, `ecs:DescribeServices`, `ecs:DescribeTaskDefinition`
+- `iam:PassRole` for task execution and task roles
 
 ---
 
-### ECS Task Configuration
+## Security
 
-In the **ECS task definition**:
-
-* Assign the IAM role containing the policy above as the **task role**
-* Pass DB connection details via environment variables or Secrets Manager:
-
-  * `DB_HOST`
-  * `DB_PORT`
-  * `DB_DATABASE`
-  * `DB_USER=demo_app`
-
-Your application generates an IAM auth token at runtime to connect to RDS.
+- CSRF protection on all forms
+- Passwords hashed with bcrypt (cost factor 12)
+- Sessions stored in MySQL (survives container restarts)
+- All secrets in AWS Secrets Manager (never in code or `.env`)
+- No AWS long-lived credentials — OIDC only
+- Docker runs as non-root `node` user
+- Trivy scans every build for vulnerabilities
+- IAM roles follow least privilege principle
+- ALB is the only public entry point
 
 ---
 
-# Monitoring (ECS)
+## Monitoring
 
-For monitoring ECS workloads, **enable ECS Container Insights** at the cluster level.
+ECS Container Insights is enabled on the cluster.
 
-Container Insights provides:
-
-* CPU & memory utilization (task + service level)
-* Task count and restarts
-* Network metrics
-* Logs integration with CloudWatch
-
-**How to use:**
-
-* Enable `containerInsights = enabled` on the ECS cluster
-* View metrics in **CloudWatch → Container Insights**
-* Use **CloudWatch Logs** for application logs
-* Use **CloudWatch Alarms** for CPU / memory thresholds
-
-> No Prometheus, Grafana, or agents are required for ECS monitoring.
+- View metrics: **CloudWatch → Container Insights**
+- View logs: **CloudWatch → Log Groups → `/ecs/dev-ecs-fargate/node-demo`**
+- Set alarms on CPU/memory thresholds via CloudWatch Alarms
 
 ---
-## Readings
-* [How to Architect a Node.Js Project](https://dev.to/shadid12/how-to-architect-a-node-js-project-from-ground-up-1n22)
 
-## Contributing
+## Packages Used
 
-This boilerplate is open to suggestions and contributions, documentation contributions are also welcome! 😊
+| Package | Purpose |
+|---|---|
+| [express](https://github.com/expressjs/express) | Web framework |
+| [sequelize](https://github.com/sequelize/sequelize) | MySQL ORM |
+| [mysql2](https://github.com/sidorares/node-mysql2) | MySQL client |
+| [bcryptjs](https://github.com/dcodeIO/bcrypt.js) | Password hashing |
+| [express-session](https://github.com/expressjs/session) | Session management |
+| [connect-session-sequelize](https://github.com/mweibel/connect-session-sequelize) | MySQL session store |
+| [csurf](https://github.com/expressjs/csurf) | CSRF protection |
+| [express-handlebars](https://github.com/express-handlebars/express-handlebars) | Templating engine |
+| [express-flash](https://github.com/RGBboy/express-flash) | Flash messages |
+| [dotenv](https://github.com/motdotla/dotenv) | Local env variable loading |
+| [validator](https://github.com/validatorjs/validator.js) | Input validation |
+| [body-parser](https://github.com/expressjs/body-parser) | Request body parsing |
+| [nodemon](https://github.com/remy/nodemon) | Auto-restart in development |
+
+---
+
+## What's Next
+
+- HTTPS with ACM certificate + Route 53 custom domain
+- Staging and production environment separation
+- Database migrations in CI/CD pipeline
+- Automated rollback on health check failure
+- CloudWatch alarms for CPU/memory thresholds
+- WAF on ALB for DDoS protection
