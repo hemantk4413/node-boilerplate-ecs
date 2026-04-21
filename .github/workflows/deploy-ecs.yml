@@ -11,7 +11,7 @@ env:
   ECS_SERVICE: node-demo
   CONTAINER_NAME: node-demo
   TASK_DEFINITION_PATH: ecs/task-definition.json
-  DOCKER_CONTEXT: node-express-mysql-boilerplate
+  BUILD_CONTEXT: node-express-mysql-boilerplate
   DOCKERFILE_PATH: node-express-mysql-boilerplate/Dockerfile
 
 permissions:
@@ -55,7 +55,7 @@ jobs:
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             -f ${{ env.DOCKERFILE_PATH }} \
-            ${{ env.DOCKER_CONTEXT }}
+            ${{ env.BUILD_CONTEXT }}
 
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
