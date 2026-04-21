@@ -1,35 +1,113 @@
-name: Deploy Application to ECS
+name: Deploy to ECS
 
 on:
   push:
     branches: ["main"]
 
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: demo-app-staging
+  ECS_CLUSTER: dev-ecs-fargate
+  ECS_SERVICE: node-demo
+  CONTAINER_NAME: node-demo
+  TASK_DEFINITION_PATH: ecs/task-definition.json
+  DOCKER_CONTEXT: node-express-mysql-boilerplate
+  DOCKERFILE_PATH: node-express-mysql-boilerplate/Dockerfile
+
+permissions:
+  id-token: write   # required for OIDC auth with AWS
+  contents: read
+
 jobs:
-  ecs:
-    uses: satyam0710/cicd/.github/workflows/ecs-deployment.yml@main
-    with:
-      # Source Code
-      checkout_ref: main
-      # AWS
-      aws_role_arn: arn:aws:iam::569144120749:role/github-actions-ecs-deploy-role
-      aws_region: us-east-1
+  build-and-deploy:
+    name: Build, Scan & Deploy
+    runs-on: ubuntu-latest
 
-      # ECS / ECR
-      ecr_repository: demo-app-staging
-      ecs_cluster: dev-ecs-fargate
-      ecs_service: node-demo
-      container_name: node-demo
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # Docker build
-      docker_context: node-express-mysql-boilerplate
-      dockerfile_path: node-express-mysql-boilerplate/Dockerfile
+      # ── 2. Configure AWS credentials via OIDC (no long-lived keys) ─────────
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::569144120749:role/github-actions-ecs-deploy-role
+          aws-region: ${{ env.AWS_REGION }}
 
-      # ECS task definition
-      task_definition_path: ecs/task-definition.json
+      # ── 3. Login to Amazon ECR ─────────────────────────────────────────────
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # Optional
-      enable_trivy_scan: true
-      enable_slack_alert: true
+      # ── 4. Build & push Docker image ───────────────────────────────────────
+      - name: Build and push Docker image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            -f ${{ env.DOCKERFILE_PATH }} \
+            ${{ env.DOCKER_CONTEXT }}
 
-    secrets:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      # ── 5. Trivy vulnerability scan ────────────────────────────────────────
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ${{ steps.build-image.outputs.image }}
+          format: table
+          exit-code: 0          # set to 1 to block deploy on CRITICAL findings
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      # ── 6. Render new task definition with updated image ───────────────────
+      - name: Render ECS task definition
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.TASK_DEFINITION_PATH }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      # ── 7. Deploy to ECS ───────────────────────────────────────────────────
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      # ── 8. Slack notification ──────────────────────────────────────────────
+      - name: Notify Slack on success
+        if: success()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "✅ *${{ github.repository }}* deployed successfully to ECS.\n*Branch:* `${{ github.ref_name }}`\n*Commit:* `${{ github.sha }}`\n*By:* ${{ github.actor }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "❌ *${{ github.repository }}* deployment to ECS *FAILED*.\n*Branch:* `${{ github.ref_name }}`\n*Commit:* `${{ github.sha }}`\n*By:* ${{ github.actor }}\n*Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

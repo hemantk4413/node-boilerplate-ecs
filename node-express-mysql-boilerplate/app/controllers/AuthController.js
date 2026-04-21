@@ -93,6 +93,16 @@ exports.signUpPage = (req, res, next) => {
 };
 
 exports.signUp = (req, res, next) => {
+	const validationErrors = [];
+	if (!validator.isLength(req.body.name || '', { min: 2 })) validationErrors.push('Name must be at least 2 characters.');
+	if (!validator.isEmail(req.body.email || '')) validationErrors.push('Please enter a valid email address.');
+	if (!validator.isLength(req.body.password || '', { min: 8 })) validationErrors.push('Password must be at least 8 characters.');
+	if (validationErrors.length) {
+		req.flash('error', validationErrors);
+		req.flash('oldInput', { name: req.body.name, email: req.body.email });
+		return res.redirect('/sign-up');
+	}
+
 	User.findOne({
 		where: {
 			email: req.body.email
@@ -160,4 +170,55 @@ exports.forgotPassword = (req, res, next) => {
 				if (result) return res.redirect('/resetlink');
 			}).catch(err => { console.log(err) })
 	});
+};
+
+exports.resetPasswordPage = (req, res, next) => {
+	const { token } = req.params;
+	User.findOne({
+		where: {
+			resetToken: token,
+		}
+	}).then(user => {
+		if (!user || user.resetTokenExpiry < Date.now()) {
+			req.flash('error', 'Password reset link is invalid or has expired.');
+			return res.redirect('/forgot-password');
+		}
+		res.render('reset_password', {
+			layout: 'login_layout',
+			loginPage: true,
+			pageTitle: 'Reset Password',
+			token,
+			errorMessage: message(req)
+		});
+	}).catch(err => console.log(err));
+};
+
+exports.resetPassword = (req, res, next) => {
+	const { token } = req.params;
+	const validationErrors = [];
+	if (!validator.isLength(req.body.password || '', { min: 8 })) validationErrors.push('Password must be at least 8 characters.');
+	if (req.body.password !== req.body.confirmPassword) validationErrors.push('Passwords do not match.');
+	if (validationErrors.length) {
+		req.flash('error', validationErrors);
+		return res.redirect(`/reset-password/${token}`);
+	}
+
+	User.findOne({ where: { resetToken: token } })
+		.then(user => {
+			if (!user || user.resetTokenExpiry < Date.now()) {
+				req.flash('error', 'Password reset link is invalid or has expired.');
+				return res.redirect('/forgot-password');
+			}
+			return bcrypt.hash(req.body.password, 12).then(hashedPassword => {
+				user.password = hashedPassword;
+				user.resetToken = null;
+				user.resetTokenExpiry = null;
+				return user.save();
+			});
+		})
+		.then(() => {
+			req.flash('error', 'Password updated successfully. Please log in.');
+			return res.redirect('/login');
+		})
+		.catch(err => console.log(err));
 };

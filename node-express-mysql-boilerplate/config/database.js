@@ -53,9 +53,7 @@ const sequelize = new Sequelize({
 sequelize.beforeConnect(async (config) => {
   try {
     const authToken = await generateAuthToken();
-    console.log("Generated Auth Token:", authToken);
     config.password = authToken;
-    console.log(config);
   } catch (error) {
     console.error("Failed to generate auth token:", error.message);
     throw error;
