@@ -28,14 +28,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ── 2. Debug OIDC token ────────────────────────────────────────────────
-      - name: Debug OIDC token subject
-        run: |
-          IDTOKEN=$(curl -sLS "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
-            -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" | jq -r '.value')
-          echo "$IDTOKEN" | cut -d'.' -f2 | base64 -d 2>/dev/null | jq -r '.sub'
-
-      # ── 3. Configure AWS credentials via OIDC (no long-lived keys) ─────────
+      # ── 2. Configure AWS credentials via OIDC (no long-lived keys) ─────────
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -54,6 +47,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          # Reset Docker context to default to avoid stale context conflicts
+          docker context use default
+
           docker build \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
