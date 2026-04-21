@@ -23,13 +23,13 @@
         { "name": "PORT", "value": "3000" }
       ],
       "secrets": [
-        { "name": "DB_HOST",        "valueFrom": "arn:aws:secretsmanager:us-east-1:569144120749:secret:ECS-RDS-bZpgOC:DB_HOST::"},
-        { "name": "DB_USERNAME",    "valueFrom": "arn:aws:secretsmanager:us-east-1:569144120749:secret:ECS-RDS-bZpgOC:DB_USERNAME::"},
-        { "name": "DB_DATABASE",    "valueFrom": "arn:aws:secretsmanager:us-east-1:569144120749:secret:ECS-RDS-bZpgOC:DB_DATABASE::"},
-        { "name": "DB_PASSWORD",    "valueFrom": "arn:aws:secretsmanager:us-east-1:569144120749:secret:ECS-RDS-bZpgOC:DB_PASSWORD::"},
-        { "name": "DB_PORT",        "valueFrom": "arn:aws:secretsmanager:us-east-1:569144120749:secret:ECS-RDS-bZpgOC:DB_PORT::"},
-        { "name": "DB_REGION",      "valueFrom": "arn:aws:secretsmanager:us-east-1:569144120749:secret:ECS-RDS-bZpgOC:DB_REGION::"},
-        { "name": "SESSION_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-1:569144120749:secret:ECS-RDS-bZpgOC:SESSION_SECRET::"}
+        { "name": "DB_HOST",        "valueFrom": "arn:aws:secretsmanager:us-east-1:115019372174:secret:ECS-RDS-bZpgOC:DB_HOST::"},
+        { "name": "DB_USERNAME",    "valueFrom": "arn:aws:secretsmanager:us-east-1:115019372174:secret:ECS-RDS-bZpgOC:DB_USERNAME::"},
+        { "name": "DB_DATABASE",    "valueFrom": "arn:aws:secretsmanager:us-east-1:115019372174:secret:ECS-RDS-bZpgOC:DB_DATABASE::"},
+        { "name": "DB_PASSWORD",    "valueFrom": "arn:aws:secretsmanager:us-east-1:115019372174:secret:ECS-RDS-bZpgOC:DB_PASSWORD::"},
+        { "name": "DB_PORT",        "valueFrom": "arn:aws:secretsmanager:us-east-1:115019372174:secret:ECS-RDS-bZpgOC:DB_PORT::"},
+        { "name": "DB_REGION",      "valueFrom": "arn:aws:secretsmanager:us-east-1:115019372174:secret:ECS-RDS-bZpgOC:DB_REGION::"},
+        { "name": "SESSION_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-1:115019372174:secret:ECS-RDS-bZpgOC:SESSION_SECRET::"}
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
